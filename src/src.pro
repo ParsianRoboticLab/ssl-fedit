@@ -84,3 +84,7 @@ nodist_soccerwindow2_qt4_SOURCES = \
 	moc_sample_view.cpp
 
 RC_FILE = fedit2.rc
+OBJECTS_DIR = $$PWD/objs
+MOC_DIR = $$PWD/objs
+
+

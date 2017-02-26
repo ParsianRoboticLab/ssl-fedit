@@ -36,6 +36,7 @@ config.status
 libtool
 src/.deps/*
 src/Makefile
+src/objs/*
 stamp-h1
 tool/.deps/*
 tool/Makefile
