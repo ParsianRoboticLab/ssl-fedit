@@ -27,3 +27,16 @@
 *.exe
 *.out
 *.app
+
+#Fedit Configure
+Makefile
+config.h
+config.log
+config.status
+libtool
+src/.deps/*
+src/Makefile
+stamp-h1
+tool/.deps/*
+tool/Makefile
+
