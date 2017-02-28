@@ -56,9 +56,10 @@
 #include <rcsc/formation/formation_cdt.h>
 #include <rcsc/formation/formation_dt.h>
 #include <rcsc/formation/formation_knn.h>
+//#include <rcsc/formation/formation_ssl.h>
 //#include <rcsc/formation/formation_ngnet.h>
 //#include <rcsc/formation/formation_sbsp.h>
-//#include <rcsc/formation/formation_rbf.h>
+#include <rcsc/formation/formation_rbf.h>
 //#include <rcsc/formation/formation_static.h>
 //#include <rcsc/formation/formation_uva.h>
 
@@ -87,7 +88,7 @@ using namespace formation;
 MainWindow::MainWindow()
 {
     qApp->setWindowIcon( QIcon( QPixmap( fedit2_xpm ) ) );
-    this->setWindowTitle( tr( "Formation Editor" ) );
+    this->setWindowTitle( tr( "SSL Formation Editor" ) );
     this->setMinimumSize( 280, 220 );
     this->resize( 640, 480 );
 
@@ -1379,11 +1380,17 @@ MainWindow::newFile()
         // data is changed, but save operation is cancelled.
         return;
     }
-
     QStringList names;
-    names.push_back( QString::fromStdString( FormationCDT::name() ) );
-    names.push_back( QString::fromStdString( FormationDT::name() ) );
-    names.push_back( QString::fromStdString( FormationKNN::name() ) );
+//	names.push_back( QString::fromStdString( FormationSSL::name() ) + '1' );
+//    names.push_back( QString::fromStdString( FormationSSL::name() ) + '2' );
+//    names.push_back( QString::fromStdString( FormationSSL::name() ) + '3');
+//        names.push_back( QString::fromStdString( FormationSSL::name() ) + '4');
+//        names.push_back( QString::fromStdString( FormationSSL::name() ) + '5');
+
+
+    //names.push_back( QString::fromStdString( FormationRBF::name() ));
+    //names.push_back( QString::fromStdString( FormationDT::name() ) );
+    //names.push_back( QString::fromStdString( FormationKNN::name() ) );
     //     names.push_back( QString::fromAscii( FormationBPN::name().c_str() ) );
     //     names.push_back( QString::fromAscii( FormationRBF::name().c_str() ) );
     //     names.push_back( QString::fromAscii( FormationNGNet::name().c_str() ) );

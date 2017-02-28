@@ -44,14 +44,16 @@
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/math_util.h>
 
+#include "Field.h"
+
 #include <fstream>
 #include <iostream>
 
 using namespace rcsc;
 using namespace rcsc::formation;
 
-const double EditData::MAX_X = ServerParam::DEFAULT_PITCH_LENGTH * 0.5 + 2.0;
-const double EditData::MAX_Y = ServerParam::DEFAULT_PITCH_WIDTH * 0.5 + 2.0;
+const double EditData::MAX_X = _FIELD_WIDTH * 0.5 + 0.2;
+const double EditData::MAX_Y = _FIELD_HEIGHT * 0.5 + 0.2;
 
 namespace {
 
@@ -134,7 +136,7 @@ EditData::createFormation( const QString & type_name )
     std::cerr << "createFormation init" << std::endl;
     init();
 
-    std::cerr << "createFormation create" << std::endl;
+    std::cerr << "createFormation create: " << type_name.toStdString()<< std::endl;
     M_formation = Formation::create( type_name.toStdString() );
 
     if ( ! M_formation )
@@ -147,8 +149,10 @@ EditData::createFormation( const QString & type_name )
 
     M_conf_changed = true;
     M_samples = M_formation->samples();
-
+  //  SampleDataSet.addData(
+//Formation.samples()
     M_formation->createDefaultData();
+
     train();
 }
 
@@ -462,7 +466,7 @@ EditData::moveBallTo( const double & x,
     Vector2D pos = round_coordinates( x, y );
 
     M_state.ball_ = pos;
-    if ( pos.absY() < 1.0 )
+    if ( pos.absY() < 0.05 )
     {
         M_state.ball_.y = 0.0;
     }
@@ -470,7 +474,7 @@ EditData::moveBallTo( const double & x,
     if ( Options::instance().dataAutoSelect()
          && M_samples )
     {
-        SampleDataSet::IndexData d = M_samples->nearestData( pos, 1.0 );
+        SampleDataSet::IndexData d = M_samples->nearestData( pos, 0.05 );
         if ( d.second )
         {
             M_current_index = d.first;
@@ -673,7 +677,7 @@ EditData::selectObject( const double & x,
                         const double & y )
 {
     const Vector2D pos( x, y );
-    const double dist2_thr = 1.5 * 1.5;
+	const double dist2_thr = .1 * .1;
 
     double mindist2 = 200.0 * 200.0;
 

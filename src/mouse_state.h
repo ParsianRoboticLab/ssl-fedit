@@ -102,7 +102,7 @@ public:
     bool isDragged() const
       {
           return ( M_pressed
-                   && ( M_pressed_point - M_dragged_point ).manhattanLength() > 4
+                   && ( M_pressed_point - M_dragged_point ).manhattanLength() > 0.2
 //                    && ( qAbs( M_pressed_point.x() - M_dragged_point.x() ) > 2
 //                         || qAbs( M_pressed_point.y() - M_dragged_point.y() ) > 2 )
                    );

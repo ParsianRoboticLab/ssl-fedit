@@ -48,6 +48,8 @@
 
 #include <boost/weak_ptr.hpp>
 
+#include <Field.h>
+
 class QPainter;
 
 class EditData;
@@ -67,7 +69,7 @@ class EditCanvas
     Q_OBJECT
 
 private:
-
+    CField* field;
     boost::weak_ptr< EditData > M_edit_data;
 
     QTransform M_transform;
@@ -106,6 +108,8 @@ private:
     EditCanvas( const EditCanvas & );
     const EditCanvas & operator=( const EditCanvas & );
 
+    QPointF pp;
+
 public:
 
     explicit
@@ -120,6 +124,7 @@ public:
 
 private:
 
+    void drawArc(QPainter &painter, qreal centerX, qreal centerY, qreal radius, int start, int end);
     void setAntialiasFlag( QPainter & painter,
                            bool on );
 
@@ -144,6 +149,8 @@ protected:
     void mousePressEvent( QMouseEvent * event );
     void mouseReleaseEvent( QMouseEvent * event );
     void mouseMoveEvent( QMouseEvent * event );
+    void wheelEvent(QWheelEvent *);
+    void resizeEvent(QResizeEvent *);
 
 public slots:
 

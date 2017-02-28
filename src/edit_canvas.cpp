@@ -47,6 +47,13 @@
 
 #include <iostream>
 
+#include <Field.h>
+
+#define TopGoal 0.50
+#define ButtonGoal -0.50
+#define FieldWidth 9.000
+
+
 using namespace rcsc;
 using namespace rcsc::formation;
 
@@ -56,11 +63,11 @@ using namespace rcsc::formation;
  */
 EditCanvas::EditCanvas( QWidget * parent )
     :
-#ifdef USE_GLWIDGET
-    QGLWidget( QGLFormat( QGL::SampleBuffers ), parent )
-#else
-    QWidget( parent )
-#endif
+      #ifdef USE_GLWIDGET
+      QGLWidget( QGLFormat( QGL::SampleBuffers ), parent )
+    #else
+      QWidget( parent )
+    #endif
     // foreground graphic context
     , M_field_color( 31, 160, 31 )
     //, M_field_brush( QColor( 31, 160, 31 ), Qt::SolidPattern )
@@ -87,6 +94,9 @@ EditCanvas::EditCanvas( QWidget * parent )
     , M_background_symmetry_brush( QColor( 0, 192, 31 ), Qt::SolidPattern )
     , M_background_font_pen( QColor( 0, 63, 127 ), 0, Qt::SolidLine )
 {
+    field = new CField();
+
+
     //this->setPalette( QPalette( M_field_brush.color() ) );
     this->setPalette( QPalette( M_field_color ) );
     this->setAutoFillBackground( true );
@@ -125,11 +135,10 @@ void
 EditCanvas::paintEvent( QPaintEvent * )
 {
     QPainter painter( this );
-
     if ( Options::instance().autoFitMode() )
     {
-        double scale_w = this->width() / ( ServerParam::DEFAULT_PITCH_LENGTH + 10.0 );
-        double scale_h =  this->height() / ( ServerParam::DEFAULT_PITCH_WIDTH + 10.0 );
+        double scale_w = this->width() / ( _FIELD_WIDTH +0.5 );
+        double scale_h =  this->height() / ( _FIELD_HEIGHT + 0.5 );
         double scale_factor = qMin( scale_w, scale_h );
 
         M_transform.reset();
@@ -143,7 +152,6 @@ EditCanvas::paintEvent( QPaintEvent * )
     {
         setAntialiasFlag( painter, true );
     }
-
     drawField( painter );
     if ( Options::instance().showBackgroundData() )
     {
@@ -157,6 +165,9 @@ EditCanvas::paintEvent( QPaintEvent * )
     }
     drawBall( painter );
     drawConstraintSelection( painter );
+
+
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -179,6 +190,12 @@ EditCanvas::setAntialiasFlag( QPainter & painter,
 /*!
 
  */
+
+void EditCanvas::drawArc(QPainter &painter, qreal centerX, qreal centerY, qreal radius, int start, int end)
+{
+    painter.drawArc(QRectF(centerX-radius, centerY-radius, 2*radius, 2*radius), start*16, (end-start)*16);
+}
+
 void
 EditCanvas::drawField( QPainter & painter )
 {
@@ -203,8 +220,8 @@ EditCanvas::drawField( QPainter & painter )
     }
 
     // set screen coordinates of field
-    const double left_x   = - ServerParam::DEFAULT_PITCH_LENGTH * 0.5;
-    const double right_x  = + ServerParam::DEFAULT_PITCH_LENGTH * 0.5;
+    const double left_x   =  field->ourGoal().x; // - ServerParam::DEFAULT_PITCH_LENGTH * 0.5;
+    const double right_x  =  field->oppGoal().x;// + ServerParam::DEFAULT_PITCH_LENGTH * 0.5;
 
     //
     // lines
@@ -212,14 +229,14 @@ EditCanvas::drawField( QPainter & painter )
 
     if ( s_first )
     {
-        const double top_y =    - ServerParam::DEFAULT_PITCH_WIDTH * 0.5;
-        const double bottom_y = + ServerParam::DEFAULT_PITCH_WIDTH * 0.5;
+        const double top_y =  -_FIELD_HEIGHT*0.5;// - ServerParam::DEFAULT_PITCH_WIDTH * 0.5;
+        const double bottom_y = _FIELD_HEIGHT*0.5;
 
-        const double pen_top_y =    - ServerParam::DEFAULT_PENALTY_AREA_WIDTH * 0.5;
-        const double pen_bottom_y = + ServerParam::DEFAULT_PENALTY_AREA_WIDTH * 0.5;
+        const double pen_top_y =  -fabs(field->oppGoalL().y);
+        const double pen_bottom_y = fabs(field->oppGoalL().y);
 
-        const double goal_area_top_y =    - ServerParam::DEFAULT_GOAL_AREA_WIDTH * 0.5;
-        const double goal_area_bottom_y = + ServerParam::DEFAULT_GOAL_AREA_WIDTH * 0.5;
+        const double goal_area_top_y =  -fabs(field->oppGoalL().y);  //- ServerParam::DEFAULT_GOAL_AREA_WIDTH * 0.5;
+        const double goal_area_bottom_y = fabs(field->oppGoalL().y); //+ ServerParam::DEFAULT_GOAL_AREA_WIDTH * 0.5;
 
         s_first = false;
 
@@ -235,11 +252,15 @@ EditCanvas::drawField( QPainter & painter )
         s_lines.moveTo( 0.0, top_y );
         s_lines.lineTo( 0.0, bottom_y );
 
+
+        // fieldCenter.setRect(-0.500, 0.500, 1.000, 1.000);
+        //
+        //
         // center circle
-        s_lines.addEllipse( - ServerParam::DEFAULT_CENTER_CIRCLE_R,
-                            - ServerParam::DEFAULT_CENTER_CIRCLE_R,
-                            ServerParam::DEFAULT_CENTER_CIRCLE_R * 2.0,
-                            ServerParam::DEFAULT_CENTER_CIRCLE_R * 2.0 );
+        s_lines.addEllipse(-_CENTER_CIRCLE_RAD,
+                           -_CENTER_CIRCLE_RAD,
+                           2*_CENTER_CIRCLE_RAD,
+                           2*_CENTER_CIRCLE_RAD);
 #else
         s_lines.addRect( - ServerParam::DEFAULT_KEEPAWAY_LENGTH*0.5,
                          - ServerParam::DEFAULT_KEEPAWAY_WIDTH*0.5,
@@ -248,7 +269,7 @@ EditCanvas::drawField( QPainter & painter )
 #endif
 
         // left penalty area
-        s_lines.moveTo( left_x, pen_top_y );
+        /* s_lines.moveTo( left_x, pen_top_y );
         s_lines.lineTo( left_x + ServerParam::DEFAULT_PENALTY_AREA_LENGTH, pen_top_y );
         s_lines.lineTo( left_x + ServerParam::DEFAULT_PENALTY_AREA_LENGTH, pen_bottom_y );
         s_lines.lineTo( left_x, pen_bottom_y );
@@ -269,12 +290,42 @@ EditCanvas::drawField( QPainter & painter )
         s_lines.moveTo( right_x, goal_area_top_y );
         s_lines.lineTo( right_x - ServerParam::DEFAULT_GOAL_AREA_LENGTH, goal_area_top_y );
         s_lines.lineTo( right_x - ServerParam::DEFAULT_GOAL_AREA_LENGTH, goal_area_bottom_y );
-        s_lines.lineTo( right_x, goal_area_bottom_y );
+        s_lines.lineTo( right_x, goal_area_bottom_y );*/
+        //s_lines.addRect(2.225, -0.975, 0.800, 1.950);
+
     }
+
 
     painter.setPen( M_line_pen );
     painter.setBrush( Qt::NoBrush );
     painter.drawPath( s_lines );
+    //painter.drawArc(QRectF(2.225, -0.975, 1.600, 1.0), 90*16, 90*16);
+
+
+#ifndef LARGE_FIELD
+    QRectF leftPenalty, rightPenalty;
+    leftPenalty.setRect(-3.025, -0.975, 0.800, 1.950);
+    rightPenalty.setRect(2.225, -0.975, 0.800, 1.950);
+#else
+    QRectF leftPenalty, rightPenalty;
+    leftPenalty.setRect(-_FIELD_WIDTH/2.0, -_FIELD_PENALTY/2.0, _GOAL_RAD, _FIELD_PENALTY);
+    rightPenalty.setRect(_FIELD_WIDTH/2.0 - _GOAL_RAD, -_FIELD_PENALTY/2.0, _GOAL_RAD, _FIELD_PENALTY);
+#endif
+
+    drawArc(painter, rightPenalty.right(), -(rightPenalty.bottom()-rightPenalty.width()), rightPenalty.width(), 90, 180);
+    drawArc(painter, rightPenalty.right(), -1*(rightPenalty.top()+rightPenalty.width()), rightPenalty.width(), 180, 270);
+    painter.drawLine(QPointF(rightPenalty.right()-rightPenalty.width(), rightPenalty.bottom()-rightPenalty.width()), QPointF(rightPenalty.right()-rightPenalty.width(), rightPenalty.top()+rightPenalty.width() ));
+
+    //    glCallList(drawArc(leftPenalty.left(), -1*(leftPenalty.bottom()-leftPenalty.width()), leftPenalty.width(), 0, 90));
+    //    glCallList(drawArc(leftPenalty.left(), -1*(leftPenalty.top()+leftPenalty.width()), leftPenalty.width(), 90, 180));
+    //    glCallList(drawLine(leftPenalty.left()+leftPenalty.width(), leftPenalty.bottom()-leftPenalty.width(), field.left()+leftPenalty.width(), leftPenalty.top()+leftPenalty.width() ));
+
+
+    drawArc(painter, leftPenalty.left(), -(leftPenalty.bottom()-leftPenalty.width()), leftPenalty.width(), 0, 90);
+    drawArc(painter, leftPenalty.left(), -1*(leftPenalty.top()+leftPenalty.width()), leftPenalty.width(), 270, 360);
+    painter.drawLine(QPointF(leftPenalty.left()+leftPenalty.width(), leftPenalty.bottom()-leftPenalty.width()), QPointF(leftPenalty.left()+leftPenalty.width(), leftPenalty.top()+leftPenalty.width() ));
+
+
 
     //
     // goals
@@ -283,17 +334,17 @@ EditCanvas::drawField( QPainter & painter )
     painter.setPen( Qt::NoPen );
 
     // left goal
-    painter.fillRect( QRectF( left_x - ServerParam::DEFAULT_GOAL_DEPTH,
-                              - ServerParam::DEFAULT_GOAL_WIDTH * 0.5,
-                              ServerParam::DEFAULT_GOAL_DEPTH,
-                              ServerParam::DEFAULT_GOAL_WIDTH ),
-                      Qt::black );
+    painter.fillRect( QRectF( left_x - _GOAL_DEPTH,
+                              - _GOAL_WIDTH * 0.5, //goal width
+                              _GOAL_DEPTH,
+                              _GOAL_WIDTH ),
+                              Qt::black );
     // right goal
     painter.fillRect( QRectF( right_x,
-                              - ServerParam::DEFAULT_GOAL_WIDTH * 0.5,
-                              ServerParam::DEFAULT_GOAL_DEPTH,
-                              ServerParam::DEFAULT_GOAL_WIDTH ),
-                      Qt::black );
+                              - _GOAL_WIDTH * 0.5,
+                              _GOAL_DEPTH,
+                              _GOAL_WIDTH ),
+                              Qt::black );
 
 
     if ( Options::instance().antialiasing() )
@@ -476,7 +527,7 @@ EditCanvas::drawData( QPainter & painter )
               it != d_end;
               ++it, ++count )
         {
-            painter.drawText( transform.map( QPointF( it->ball_.x + 0.7, it->ball_.y - 0.7 ) ),
+            painter.drawText( transform.map( QPointF( it->ball_.x + 0.1, it->ball_.y - 0.1 ) ),
                               QString::number( count ) );
         }
 
@@ -496,7 +547,7 @@ EditCanvas::drawData( QPainter & painter )
         painter.setBrush( Qt::NoBrush );
 
         //painter.drawEllipse( QRectF( it->ball_.x - 1.0, it->ball_.y - 1.0, 2.0, 2.0 ) );
-        painter.drawRect( QRectF( it->ball_.x - 1.0, it->ball_.y - 1.0, 2.0, 2.0 ) );
+        painter.drawRect( QRectF( it->ball_.x - 0.05, it->ball_.y - 0.05, 0.1, 0.1 ) );
     }
 
     if ( Options::instance().antialiasing() )
@@ -526,27 +577,22 @@ EditCanvas::drawPlayers( QPainter & painter )
 
     painter.setFont( M_player_font );
 
-    const bool enlarge = Options::instance().enlarge();
-    const double r = ( enlarge
-                       ? 1.085
-                       : 0.3 ); // body radius
+    const double r = 0.09; // body radius
     const double d = r * 2.0;   // body diameter
-    const int kr = 1.085;       // kickable radius
-    const int kd = kr * 2.0;    // kickable diameter
-    const int cr = 1.3; // 2.0  // catchable radius
-    const int cd = cr * 2.0;    // catchable diameter
+
+    const Vector2D bpos = ptr->state().ball_;
 
     const QTransform transform = painter.worldTransform();
 
     const std::vector< Vector2D >::const_iterator s
-        = ( ptr->selectType() == EditData::SELECT_PLAYER
-            ? ( ptr->state().players_.begin() + ptr->selectIndex() )
-            : ptr->state().players_.end() );
+            = ( ptr->selectType() == EditData::SELECT_PLAYER
+                ? ( ptr->state().players_.begin() + ptr->selectIndex() )
+                : ptr->state().players_.end() );
 
     int unum = 1;
     const std::vector< Vector2D >::const_iterator p_end = ptr->state().players_.end();
     for ( std::vector< Vector2D >::const_iterator p = ptr->state().players_.begin();
-          p != p_end;
+          p != p_end && unum < 7;
           ++p, ++unum )
     {
         if ( p == s )
@@ -555,8 +601,19 @@ EditCanvas::drawPlayers( QPainter & painter )
             painter.setBrush( f->isSymmetryType( unum )
                               ? M_symmetry_brush
                               : M_player_brush );
-            painter.drawEllipse( QRectF( p->x - r - 0.5, p->y - r - 0.5,
-                                         d + 1.0, d + 1.0 ) );
+            painter.drawEllipse( QRectF( p->x - r, p->y - r ,
+                                         d, d )  );
+
+            QPen pen = painter.pen();
+            pen.setColor(Qt::darkMagenta);
+            painter.setPen(pen);
+
+            AngleDeg theta( asin(r/p->dist(bpos)) * 180.0 / M_PI );
+            AngleDeg dir = ((*p)-bpos).dir();
+            Vector2D left = bpos + Vector2D::polar2vector(10,dir-theta);
+            Vector2D right = bpos + Vector2D::polar2vector(10,dir+theta);
+            painter.drawLine(QPointF(bpos.x,bpos.y),QPointF(left.x,left.y));
+            painter.drawLine(QPointF(bpos.x,bpos.y),QPointF(right.x,right.y));
         }
         else
         {
@@ -565,18 +622,6 @@ EditCanvas::drawPlayers( QPainter & painter )
                               ? M_symmetry_brush
                               : M_player_brush );
             painter.drawEllipse( QRectF( p->x - r, p->y - r, d, d ) );
-        }
-
-        if ( ! enlarge
-             && unum != 1 )
-        {
-            painter.setBrush( Qt::NoBrush );
-            painter.drawEllipse( QRectF( p->x - kr, p->y - kr, kd, kd ) );
-        }
-        else if ( unum == 1 )
-        {
-            painter.setBrush( Qt::NoBrush );
-            painter.drawEllipse( QRectF( p->x - cr, p->y - cr, cd, cd ) );
         }
 
         painter.setPen( Qt::white );
@@ -594,6 +639,7 @@ EditCanvas::drawPlayers( QPainter & painter )
 void
 EditCanvas::drawBall( QPainter & painter )
 {
+
     boost::shared_ptr< EditData > ptr = M_edit_data.lock();
     if ( ! ptr )
     {
@@ -606,26 +652,23 @@ EditCanvas::drawBall( QPainter & painter )
 
     const Vector2D bpos = ptr->state().ball_;
     const bool enlarge = Options::instance().enlarge();
-    const double r = ( enlarge
-                       ? ( ptr->selectType() == EditData::SELECT_BALL
-                           ? 1.0
-                           : 0.7 )
-                       : ( ptr->selectType() == EditData::SELECT_BALL
-                           ? 0.2
-                           : 0.085 )
-                       );
+    const double r = 0.05;
+    double kr = 0.0175;
+    double rr = enlarge ? r : kr;
 
-    painter.drawEllipse( QRectF( bpos.x - r, bpos.y - r,
-                                 r * 2.0, r * 2.0 ) );
+    painter.drawEllipse( QRectF( bpos.x - rr, bpos.y - rr,
+                                 rr * 2.0, rr * 2.0 ) );
 
-    if ( ! enlarge )
-    {
-        painter.setBrush( Qt::NoBrush );
-
-        double kr = 1.085;
-        painter.drawEllipse( QRectF( bpos.x - kr, bpos.y - kr,
-                                     kr * 2.0, kr * 2.0 ) );
-    }
+    QPen pen = painter.pen();
+    pen.setColor(Qt::blue);
+    painter.setPen(pen);
+    QBrush brush = painter.brush();
+    brush.setStyle(Qt::NoBrush);
+    painter.setBrush(brush);
+    painter.drawEllipse( QRectF( bpos.x - .5 , bpos.y - .5 , 1 , 1 ) );
+    painter.drawLine(QPointF(bpos.x,bpos.y),QPointF(-FieldWidth/2,TopGoal));
+    painter.drawLine(QPointF(bpos.x,bpos.y),QPointF(-FieldWidth/2,ButtonGoal));
+    painter.drawLine(QPointF(bpos.x,bpos.y),QPointF(-FieldWidth/2,0));
 }
 
 
@@ -636,6 +679,10 @@ EditCanvas::drawBall( QPainter & painter )
 void
 EditCanvas::drawConstraintSelection( QPainter & painter )
 {
+
+    const float eclipseRad = 0.10;
+    const float rectHalfSide = 0.10;
+
     boost::shared_ptr< EditData > ptr = M_edit_data.lock();
     if ( ! ptr )
     {
@@ -658,12 +705,12 @@ EditCanvas::drawConstraintSelection( QPainter & painter )
     painter.setPen( Qt::blue );
     painter.setBrush( Qt::blue );
 
-    painter.drawEllipse( QRectF( it->ball_.x - 0.5, it->ball_.y - 0.5, 1.0, 1.0 ) );
+    painter.drawEllipse( QRectF( it->ball_.x - eclipseRad, it->ball_.y - eclipseRad, eclipseRad*2, eclipseRad*2 ) );
 
     if ( ptr->constraintTerminal().isValid() )
     {
-        painter.drawRect( QRectF( ptr->constraintTerminal().x - 0.5, ptr->constraintTerminal().y - 0.5,
-                                  1.0, 1.0 ) );
+        painter.drawRect( QRectF( ptr->constraintTerminal().x - rectHalfSide, ptr->constraintTerminal().y - rectHalfSide,
+                                  rectHalfSide*2, rectHalfSide*2 ) );
 
         painter.setBrush( Qt::NoBrush );
         painter.drawLine( QLineF( it->ball_.x, it->ball_.y,
@@ -810,7 +857,7 @@ EditCanvas::drawBackgroundData( QPainter & painter )
               it != d_end;
               ++it, ++count )
         {
-            painter.drawText( transform.map( QPointF( it->ball_.x + 0.7, it->ball_.y - 0.7 ) ),
+            painter.drawText( transform.map( QPointF( it->ball_.x + 0.1, it->ball_.y - 0.1 ) ),
                               QString::number( count ) );
         }
 
@@ -844,10 +891,8 @@ EditCanvas::drawBackgroundPlayers( QPainter & painter )
 
     painter.setFont( M_player_font );
 
-    const bool enlarge = Options::instance().enlarge();
-    const double r = ( enlarge
-                       ? 1.085 * 0.5
-                       : 0.3 * 0.5 );
+    //    const bool enlarge = Options::instance().enlarge();
+    const double r = 0.09;
     const int d = r * 2.0;
 
     const QTransform transform = painter.worldTransform();
@@ -890,14 +935,14 @@ void
 EditCanvas::setFocusPoint( const QPoint & pos )
 {
     QPointF p = M_transform.inverted().map( QPointF( pos ) );
-    p.setX( qBound( -ServerParam::DEFAULT_PITCH_LENGTH,
+    p.setX( qBound( -_FIELD_WIDTH,
                     p.x(),
-                    ServerParam::DEFAULT_PITCH_LENGTH ) );
-    p.setY( qBound( -ServerParam::DEFAULT_PITCH_WIDTH,
+                    _FIELD_WIDTH ) );
+    p.setY( qBound( -_FIELD_HEIGHT,
                     p.y(),
-                    ServerParam::DEFAULT_PITCH_WIDTH ) );
+                    _FIELD_HEIGHT ) );
 
-    double s = M_transform.map( QLineF( 0.0, 0.0, 1.0, 0.0 ) ).length();
+    double s = M_transform.map( QLineF( 0.0, 0.0, 1, 0.0 ) ).length();
 
     M_transform.reset();
     M_transform.translate( this->width() * 0.5 - p.x() * s,
@@ -933,9 +978,11 @@ EditCanvas::mouseDoubleClickEvent( QMouseEvent * event )
 void
 EditCanvas::mousePressEvent( QMouseEvent * event )
 {
+
     if ( event->button() == Qt::LeftButton )
     {
         M_mouse_state[0].pressed( event->pos() );
+
 
         if ( event->modifiers() == 0 )
         {
@@ -1063,10 +1110,36 @@ EditCanvas::mouseMoveEvent( QMouseEvent * event )
 /*!
 
  */
+
+void
+EditCanvas::wheelEvent(QWheelEvent *event) {
+//    if (event->delta() > 0) zoomIn();
+//    else if (event->delta() < 0) zoomOut();
+//    else return;
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+
+void
+EditCanvas::resizeEvent(QResizeEvent *) {
+    fitToScreen();
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+
+
+
 void
 EditCanvas::zoomIn()
 {
-    if ( M_transform.map( QLineF( 0.0, 0.0, 1.0, 0.0 ) ).length() * 1.5 > 100.0 )
+    if ( M_transform.map( QLineF( 0.0, 0.0, 1.0, 0.0 ) ).length() * 1.5 > 700.0 )
     {
         return;
     }
