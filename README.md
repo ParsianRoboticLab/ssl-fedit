@@ -65,8 +65,7 @@ By default, SSL-fedit is installed in the following location.
 
 `/usr/local/share data`
 
-In order to install ssl-fedit to the default position, you need administrator privileges
-I will. The installation location depends on `-prefix` option of configure script
+In order to install ssl-fedit to the default position, you need administrator privileges. The installation location depends on `--prefix` option of configure script
 You can change it. For details on the options that can be specified in configure, see `configure`
 You can reference it by executing `--help`.
 
