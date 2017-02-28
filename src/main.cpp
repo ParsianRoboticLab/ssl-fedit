@@ -47,6 +47,9 @@ main( int argc, char ** argv )
               << " "PACKAGE" "VERSION"\n"
               << " Copyright: (C) 2009. Hidehisa Akiyama\n"
               << " National Institute of Advanced Industrial Science and Technology\n"
+              << "\n"
+              << " 2017. Mohammad Mahdi Rahimi (Mahi) \n"
+              << " Amirkabir University of Technology (Tehran Polytechnic)\n"
               << " All rights reserved.\n"
               << "******************************************************************\n"
               << std::endl;
