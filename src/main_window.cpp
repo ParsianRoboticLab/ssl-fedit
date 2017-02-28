@@ -56,7 +56,7 @@
 #include <rcsc/formation/formation_cdt.h>
 #include <rcsc/formation/formation_dt.h>
 #include <rcsc/formation/formation_knn.h>
-//#include <rcsc/formation/formation_ssl.h>
+#include <rcsc/formation/formation_ssl.h>
 //#include <rcsc/formation/formation_ngnet.h>
 //#include <rcsc/formation/formation_sbsp.h>
 #include <rcsc/formation/formation_rbf.h>
@@ -402,8 +402,8 @@ MainWindow::createStatusBar()
     M_position_label = new QLabel( tr( "(0.00, 0.00)" ) );
 
     int min_width
-        = M_position_label->fontMetrics().width(  tr( "(-000.00, -000.00)" ) )
-        + 8;
+            = M_position_label->fontMetrics().width(  tr( "(-000.00, -000.00)" ) )
+            + 8;
     M_position_label->setMinimumWidth( min_width );
     M_position_label->setAlignment( Qt::AlignRight );
 
@@ -1080,11 +1080,11 @@ MainWindow::saveChanges()
     }
 
     QMessageBox::StandardButton result
-        = QMessageBox::question( this,
-                                 tr( "Save Notify" ),
-                                 tr( "Data is changed.\nSave?" ),
-                                 QMessageBox::Yes | QMessageBox::Cancel | QMessageBox::No,
-                                 QMessageBox::Yes );
+            = QMessageBox::question( this,
+                                     tr( "Save Notify" ),
+                                     tr( "Data is changed.\nSave?" ),
+                                     QMessageBox::Yes | QMessageBox::Cancel | QMessageBox::No,
+                                     QMessageBox::Yes );
     if ( result == QMessageBox::Cancel )
     {
         return false;
@@ -1381,11 +1381,11 @@ MainWindow::newFile()
         return;
     }
     QStringList names;
-//	names.push_back( QString::fromStdString( FormationSSL::name() ) + '1' );
-//    names.push_back( QString::fromStdString( FormationSSL::name() ) + '2' );
-//    names.push_back( QString::fromStdString( FormationSSL::name() ) + '3');
-//        names.push_back( QString::fromStdString( FormationSSL::name() ) + '4');
-//        names.push_back( QString::fromStdString( FormationSSL::name() ) + '5');
+    names.push_back( QString::fromStdString( FormationSSL::name() ) + '1' );
+    names.push_back( QString::fromStdString( FormationSSL::name() ) + '2' );
+    names.push_back( QString::fromStdString( FormationSSL::name() ) + '3');
+    names.push_back( QString::fromStdString( FormationSSL::name() ) + '4');
+    names.push_back( QString::fromStdString( FormationSSL::name() ) + '5');
 
 
     //names.push_back( QString::fromStdString( FormationRBF::name() ));

@@ -23,9 +23,10 @@ win32 {
   LIBS += -L../lib
   LIBS += -lrcsc ../zlib/zlib1.dll -lwsock32
 }
+
 unix {
-  LIBS += -L${HOME}/local/lib
-  LIBS += -lrcsc_agent -lrcsc_time -lrcsc_ann -lrcsc_param -lrcsc_net -lrcsc_gz -lrcsc_rcg -lrcsc_geom -lz
+  LIBS += -L$$PWD/../lib#-L${HOME}/local/lib
+  LIBS += -lrcsc #-lrcsc_agent -lrcsc_time -lrcsc_ann -lrcsc_param -lrcsc_net -lrcsc_gz -lrcsc_rcg -lrcsc_geom -lz
 }
 
 DEFINES += HAVE_LIBRCSC_GZ
