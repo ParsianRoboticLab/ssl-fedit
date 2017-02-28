@@ -57,7 +57,8 @@ HEADERS += \
 	main_window.h \
 	mouse_state.h \
 	options.h \
-	sample_view.h
+	sample_view.h \
+    Field.h
 
 SOURCES += \
 	command.cpp \
@@ -72,6 +73,7 @@ SOURCES += \
 	main_window.cpp \
 	options.cpp \
 	sample_view.cpp \
+    Field.cpp
 
 nodist_soccerwindow2_qt4_SOURCES = \
 	moc_constraint_delegate.cpp \
