@@ -3,12 +3,14 @@ TARGET = rcsc
 DESTDIR = ../lib
 DEPENDPATH += . geom gz monitor param rcg
 INCLUDEPATH += . .. ../boost ../zlib/include
-#LIBS += -L../zlib -lz
-LIBS += ../zlib/zlib1.dll
-DEFINES += HAVE_LIBZ HAVE_WINDOWS_H
+LIBS += -L../zlib -lz
+#LIBS += ../zlib/zlib1.dll
+#DEFINES += HAVE_LIBZ HAVE_WINDOWS_H
+DEFINES += HAVE_NETINET_IN_H
 DEFINES += TRILIBRARY REDUCED CDT_ONLY NO_TIMER VOID=int REAL=double
 CONFIG += staticlib warn_on release
-
+OBJECTS_DIR = $$PWD/objs
+MOC_DIR = $$PWD/objs
 # Input
 HEADERS += factory.h \
            math_util.h \
@@ -63,7 +65,8 @@ HEADERS += factory.h \
            formation/formation_sbsp.h \
            formation/formation_static.h \
            formation/formation_uva.h \
-           formation/sample_data.h
+           formation/sample_data.h \
+           formation/formation_ssl.h
 
 SOURCES += common/player_param.cpp \
            common/player_type.cpp \
@@ -101,4 +104,5 @@ SOURCES += common/player_param.cpp \
            formation/formation_sbsp.cpp \
            formation/formation_static.cpp \
            formation/formation_uva.cpp \
-           formation/sample_data.cpp
+           formation/sample_data.cpp \
+           formation/formation_ssl.cpp
