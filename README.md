@@ -3,7 +3,6 @@ Formation Editor For Small Size League.
 
 (this project is a fork of [fedit2](http://rctools.osdn.jp/pukiwiki/index.php?fedit2) that developed by Hidehisa AKIYAMA under GNU GPL for Robocup Soccer Simulation 2D)
 
-=============
 Introduction
 =============
 SSL-Fedit is a formation editor for RoboCup Small size League
@@ -15,7 +14,6 @@ It is.
 
 - Parsian Homepage: http://parsianrobotics.aut.ac.ir/
 
-=============
 Request library
 =============
 SSL-fedit requires the following libraries:
@@ -28,7 +26,7 @@ SSL-fedit requires the following libraries:
 Before you start installing ssl-fedit, install these libraries first
 Please keep it.
 
-==========
+
 Installation
 ==========
 Execute the following command inside the directory where you unpacked the package:
@@ -53,7 +51,6 @@ You must specify a path.
 
 In this case, you may also need to set the environment variable LD_LIBRARY_PATH.
 
-=================
 Installation settings
 =================
 Before building SSL-fedit, the configure script included in the package
@@ -69,7 +66,7 @@ In order to install ssl-fedit to the default position, you need administrator pr
 You can change it. For details on the options that can be specified in configure, see `configure`
 You can reference it by executing `--help`.
 
-=============
+
 uninstall
 =============
 Run `make uninstall` on the package compiled directory
@@ -77,7 +74,7 @@ You can easily uninstall ssl-fedit with. This operation is installed
 Delete all files, but the directories created during installation
 It will not be deleted.
 
-=======
+
 how to use
 =======
 To execute ssl-fedit, execute the following command.
